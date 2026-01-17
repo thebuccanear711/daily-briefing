@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Briefing</title>
+    <!-- Google Identity Services for Calendar OAuth -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google Fonts: Source Sans Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════════════════════════
+           CSS Custom Properties - Avaros-Inspired Theme
+           ═══════════════════════════════════════════════════════════════ */
+        :root {
+            /* Dark theme (default - Avaros style) */
+            --bg-primary: #000000;
+            --bg-secondary: #161616;
+            --bg-card: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #e2e2e2;
+            --text-muted: #969696;
+            --border-color: #2a2a2a;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --accent-color: #ffffff;
+            --accent-hover: #e2e2e2;
+            --skeleton-base: #1a1a1a;
+            --skeleton-shine: #2a2a2a;
+            --header-bg: #000000;
+            --divider-color: #2a2a2a;
+
+            /* Typography - All sans-serif */
+            --font-display: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f7f7f7;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #161616;
+            --text-muted: #898989;
+            --border-color: #e2e2e2;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --accent-color: #000000;
+            --accent-hover: #161616;
+            --skeleton-base: #e8e8e8;
+            --skeleton-shine: #f4f4f4;
+            --header-bg: #f7f7f7;
+            --divider-color: #e2e2e2;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Base Styles & Typography
+           ═══════════════════════════════════════════════════════════════ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 400;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            letter-spacing: 0.01em;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background container for effects */
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Gradient color splashes */
+        .gradient-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .gradient-blob-1 {
+            width: 600px;
+            height: 600px;
+            background: rgba(99, 102, 241, 0.35);
+            top: -200px;
+            left: -200px;
+        }
+
+        .gradient-blob-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(236, 72, 153, 0.3);
+            bottom: -150px;
+            right: -150px;
+        }
+
+        .gradient-blob-3 {
+            width: 400px;
+            height: 400px;
+            background: rgba(34, 197, 94, 0.25);
+            top: 40%;
+            right: 5%;
+        }
+
+        [data-theme="light"] .gradient-blob {
+            opacity: 0.4;
+        }
+
+        /* Dust particles canvas */
+        #dustCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* Main content needs to be above background */
+        .header, .main-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Header Styles
+           ═══════════════════════════════════════════════════════════════ */
+        .header {
+            background-color: transparent;
+            border-bottom: none;
+            padding: 1.5rem 2rem;
+            position: relative;
+            z-index: 1;
+            transition: background-color 0.3s ease;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .date-display {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .header-stats .stat-item:not(:last-of-type)::after {
+            content: '·';
+            margin-left: 1.25rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+            background-color: transparent;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 300;
+            transition: all 0.3s ease;
+        }
+
+        .stat-icon {
+            font-size: 1.1rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-value.positive {
+            color: #10b981;
+        }
+
+        .stat-value.negative {
+            color: #ef4444;
+        }
+
+        .stat-item-stock {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-stock-data {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+
+        .theme-toggle:hover {
+            opacity: 1;
+        }
+
+        .theme-toggle:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Main Content Layout
+           ═══════════════════════════════════════════════════════════════ */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .news-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        #worldNewsContainer,
+        #legalTechContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .column-header {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           News Card Styles
+           ═══════════════════════════════════════════════════════════════ */
+        .news-card {
+            background-color: transparent;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: none;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .news-card:hover {
+            border-color: var(--text-muted);
+        }
+
+        .news-card-image {
+            width: 100%;
+            height: 160px;
+            min-height: 160px;
+            object-fit: cover;
+            background-color: var(--bg-secondary);
+        }
+
+        .news-card-content {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .news-card-headline {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 2.9rem;
+        }
+
+        .news-card-summary {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .news-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            transition: color 0.2s ease;
+        }
+
+        .news-card-link:hover {
+            color: var(--text-primary);
+        }
+
+        .news-card-link::after {
+            content: '→';
+            transition: transform 0.2s ease;
+        }
+
+        .news-card-link:hover::after {
+            transform: translateX(3px);
+        }
+
+        .news-card-footer {
+            margin-top: auto;
+        }
+
+        .news-card-source {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Loading Skeleton Styles
+           ═══════════════════════════════════════════════════════════════ */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--skeleton-base) 25%,
+                var(--skeleton-shine) 50%,
+                var(--skeleton-base) 75%
+            );
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-image {
+            height: 180px;
+            border-radius: 0;
+        }
+
+        .skeleton-headline {
+            height: 1.5rem;
+            width: 90%;
+            margin-bottom: 0.75rem;
+        }
+
+        .skeleton-text {
+            height: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .skeleton-text:last-child {
+            width: 70%;
+        }
+
+        .skeleton-stat {
+            width: 80px;
+            height: 1.2rem;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Error State Styles
+           ═══════════════════════════════════════════════════════════════ */
+        .error-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .error-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .retry-button {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
+        }
+
+        .retry-button:hover {
+            border-color: var(--text-muted);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Responsive Design
+           ═══════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .date-display {
+                font-size: 1.25rem;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .stat-item {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .news-card {
+                height: 340px;
+            }
+
+            .news-card-image {
+                height: 130px;
+                min-height: 130px;
+            }
+
+            .news-card-content {
+                padding: 1rem;
+            }
+
+            .news-card-headline {
+                font-size: 1rem;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Utility Classes
+           ═══════════════════════════════════════════════════════════════ */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           API Key Configuration Notice
+           ═══════════════════════════════════════════════════════════════ */
+        .config-notice {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        [data-theme="light"] .config-notice {
+            background-color: #f7f7f7;
+        }
+
+        .config-notice-title {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .config-notice code {
+            background-color: var(--bg-secondary);
+            padding: 0.15rem 0.4rem;
+            border-radius: 2px;
+            font-size: 0.85rem;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Calendar Section Styles
+           ═══════════════════════════════════════════════════════════════ */
+        .calendar-section {
+            background-color: transparent;
+            border-radius: 0;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 0 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: none;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .calendar-login-btn {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calendar-login-btn:hover {
+            border-color: var(--text-muted);
+        }
+
+        .calendar-logout-btn {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-logout-btn:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        /* Timeline Styles */
+        .timeline-container {
+            margin-top: 0.5rem;
+        }
+
+        .timeline-hours {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0 2px;
+        }
+
+        .timeline-hour {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+            width: 40px;
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 48px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .timeline-now {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #ef4444;
+            z-index: 10;
+        }
+
+        .timeline-now::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+        }
+
+        .timeline-event {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            background-color: var(--text-muted);
+            border-radius: 2px;
+            min-width: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            overflow: hidden;
+        }
+
+        .timeline-event:hover {
+            opacity: 0.9;
+            transform: scaleY(1.05);
+        }
+
+        .timeline-event-title {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--bg-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timeline-event.all-day {
+            background-color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        /* Event Legend */
+        .timeline-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .legend-item a:hover {
+            color: var(--text-primary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background-color: var(--text-muted);
+        }
+
+        .legend-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .calendar-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .calendar-empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-loading {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .skeleton-timeline {
+            height: 48px;
+            border-radius: 8px;
+        }
+
+        .skeleton-legend {
+            height: 20px;
+            width: 60%;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        /* Tooltip for timeline events */
+        .timeline-event[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 20;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-hour {
+                font-size: 0.6rem;
+                width: 30px;
+            }
+
+            .timeline-hour:nth-child(odd) {
+                visibility: hidden;
+            }
+
+            .timeline-event-title {
+                display: none;
+            }
+
+            .timeline-legend {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="background-effects">
+        <div class="gradient-blob gradient-blob-1"></div>
+        <div class="gradient-blob gradient-blob-2"></div>
+        <div class="gradient-blob gradient-blob-3"></div>
+        <canvas id="dustCanvas"></canvas>
+    </div>
+
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="header-content">
+            <h1 class="date-display" id="dateDisplay">Loading...</h1>
+
+            <div class="header-stats" role="region" aria-label="Weather and market data">
+                <!-- Weather -->
+                <div class="stat-item" id="weatherStat">
+                    <span class="stat-icon" aria-hidden="true">☀️</span>
+                    <span class="stat-label">Los Angeles</span>
+                    <span class="stat-value skeleton skeleton-stat" id="weatherValue"></span>
+                </div>
+
+                <!-- S&P 500 -->
+                <div class="stat-item stat-item-stock" id="spStat">
+                    <span class="stat-label">S&P 500</span>
+                    <div class="stat-stock-data">
+                        <span class="stat-value skeleton skeleton-stat" id="spValue"></span>
+                        <span class="stat-change" id="spChange"></span>
+                    </div>
+                </div>
+
+                <!-- NASDAQ -->
+                <div class="stat-item stat-item-stock" id="nasdaqStat">
+                    <span class="stat-label">NASDAQ</span>
+                    <div class="stat-stock-data">
+                        <span class="stat-value skeleton skeleton-stat" id="nasdaqValue"></span>
+                        <span class="stat-change" id="nasdaqChange"></span>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <button
+                    class="theme-toggle"
+                    id="themeToggle"
+                    aria-label="Toggle dark mode"
+                    title="Toggle dark/light mode"
+                >
+                    <span id="themeIcon">☀️</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" role="main">
+        <!-- Configuration Notice (shown when API keys not configured) -->
+        <div class="config-notice" id="configNotice" style="display: none;">
+            <div class="config-notice-title">⚠️ API Keys Required</div>
+            <p>To fetch live data, configure your API keys in the <code>CONFIG</code> object at the bottom of this file. See README.md for instructions.</p>
+        </div>
+
+        <!-- Calendar Section -->
+        <section class="calendar-section" aria-labelledby="calendarTitle">
+            <div class="calendar-header">
+                <h2 class="calendar-title" id="calendarTitle">Today's Schedule</h2>
+                <div id="calendarAuthContainer">
+                    <button class="calendar-login-btn" id="calendarLoginBtn" onclick="CalendarService.signIn()">
+                        <span>📅</span> Connect Google Calendar
+                    </button>
+                </div>
+            </div>
+            <div id="calendarContainer">
+                <div class="calendar-empty">
+                    <div class="calendar-empty-icon">📅</div>
+                    <p>Connect your Google Calendar to see today's meetings</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="news-grid">
+            <!-- World News Column -->
+            <section class="news-column" aria-labelledby="worldNewsHeader">
+                <h2 class="column-header" id="worldNewsHeader">World News</h2>
+                <div id="worldNewsContainer">
+                    <!-- News cards will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Legal-Tech News Column -->
+            <section class="news-column" aria-labelledby="legalTechHeader">
+                <h2 class="column-header" id="legalTechHeader">Legal-Tech</h2>
+                <div id="legalTechContainer">
+                    <!-- News cards will be inserted here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        /* ═══════════════════════════════════════════════════════════════
+           Configuration
+           ═══════════════════════════════════════════════════════════════ */
+        const CONFIG = {
+            // API Keys (Weather and Stocks only - News uses Claude via Vercel API)
+            WEATHER_API_KEY: '5a868eee425879d286517e51be85fe86',
+            STOCKS_API_KEY: '6A1F1OD12MS9E8JU',
+
+            // Google Calendar OAuth - Replace with your Client ID from Google Cloud Console
+            GOOGLE_CLIENT_ID: '336497708635-pck7r6maarvop94dup6je1bifin3lon0.apps.googleusercontent.com',
+
+            // Cache duration in milliseconds (1 hour)
+            CACHE_DURATION: 3600000,
+
+            // Location for weather
+            LOCATION: {
+                city: 'Los Angeles',
+                lat: 34.05,
+                lon: -118.24
+            },
+
+            // Number of stories per column
+            STORIES_PER_COLUMN: 5
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Cache Manager
+           ═══════════════════════════════════════════════════════════════ */
+        const CacheManager = {
+            get(key) {
+                try {
+                    const cached = localStorage.getItem(`briefing_${key}`);
+                    if (!cached) return null;
+
+                    const { data, timestamp } = JSON.parse(cached);
+                    const now = Date.now();
+
+                    if (now - timestamp > CONFIG.CACHE_DURATION) {
+                        localStorage.removeItem(`briefing_${key}`);
+                        return null;
+                    }
+
+                    return data;
+                } catch (e) {
+                    console.error('Cache read error:', e);
+                    return null;
+                }
+            },
+
+            set(key, data) {
+                try {
+                    const cacheEntry = {
+                        data,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem(`briefing_${key}`, JSON.stringify(cacheEntry));
+                } catch (e) {
+                    console.error('Cache write error:', e);
+                }
+            },
+
+            getTheme() {
+                return localStorage.getItem('briefing_theme') || 'dark';
+            },
+
+            setTheme(theme) {
+                localStorage.setItem('briefing_theme', theme);
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Weather Service
+           ═══════════════════════════════════════════════════════════════ */
+        const WeatherService = {
+            async fetch() {
+                const cached = CacheManager.get('weather');
+                if (cached) return cached;
+
+                if (CONFIG.WEATHER_API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY') {
+                    return this.getMockData();
+                }
+
+                try {
+                    const { lat, lon } = CONFIG.LOCATION;
+                    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${CONFIG.WEATHER_API_KEY}`;
+
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Weather API error');
+
+                    const data = await response.json();
+                    const result = {
+                        temp: Math.round(data.main.temp),
+                        description: data.weather[0].main,
+                        icon: this.getWeatherIcon(data.weather[0].icon)
+                    };
+
+                    CacheManager.set('weather', result);
+                    return result;
+                } catch (e) {
+                    console.error('Weather fetch error:', e);
+                    return this.getMockData();
+                }
+            },
+
+            getWeatherIcon(iconCode) {
+                const iconMap = {
+                    '01d': '☀️', '01n': '🌙',
+                    '02d': '⛅', '02n': '☁️',
+                    '03d': '☁️', '03n': '☁️',
+                    '04d': '☁️', '04n': '☁️',
+                    '09d': '🌧️', '09n': '🌧️',
+                    '10d': '🌦️', '10n': '🌧️',
+                    '11d': '⛈️', '11n': '⛈️',
+                    '13d': '❄️', '13n': '❄️',
+                    '50d': '🌫️', '50n': '🌫️'
+                };
+                return iconMap[iconCode] || '🌡️';
+            },
+
+            getMockData() {
+                return {
+                    temp: 68,
+                    description: 'Clear',
+                    icon: '☀️'
+                };
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Stocks Service
+           ═══════════════════════════════════════════════════════════════ */
+        const StocksService = {
+            async fetch() {
+                const cached = CacheManager.get('stocks');
+                if (cached) return cached;
+
+                if (CONFIG.STOCKS_API_KEY === 'YOUR_ALPHAVANTAGE_API_KEY') {
+                    return this.getMockData();
+                }
+
+                try {
+                    const [spData, nasdaqData] = await Promise.all([
+                        this.fetchSymbol('SPY'),  // S&P 500 ETF
+                        this.fetchSymbol('QQQ')   // NASDAQ ETF
+                    ]);
+
+                    const result = {
+                        sp500: spData,
+                        nasdaq: nasdaqData
+                    };
+
+                    CacheManager.set('stocks', result);
+                    return result;
+                } catch (e) {
+                    console.error('Stocks fetch error:', e);
+                    return this.getMockData();
+                }
+            },
+
+            async fetchSymbol(symbol) {
+                const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${CONFIG.STOCKS_API_KEY}`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Stocks API error');
+
+                const data = await response.json();
+                const quote = data['Global Quote'];
+
+                if (!quote || !quote['05. price']) {
+                    throw new Error('Invalid stock data');
+                }
+
+                const price = parseFloat(quote['05. price']);
+                const change = parseFloat(quote['09. change']);
+                const changePercent = quote['10. change percent'];
+
+                return {
+                    price: price.toFixed(2),
+                    change: change.toFixed(2),
+                    changePercent: changePercent,
+                    isPositive: change >= 0
+                };
+            },
+
+            getMockData() {
+                return {
+                    sp500: { price: '4,892.50', change: '+12.34', changePercent: '+0.25%', isPositive: true },
+                    nasdaq: { price: '15,234.80', change: '-28.50', changePercent: '-0.19%', isPositive: false }
+                };
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           News Service (Claude-powered via Vercel API)
+           ═══════════════════════════════════════════════════════════════ */
+        const NewsService = {
+            // API base URL - uses relative path for Vercel, or localhost for dev
+            getApiBaseUrl() {
+                // In production (Vercel), use relative path
+                // In development, use the current origin
+                return window.location.origin;
+            },
+
+            async fetchWorldNews() {
+                const cached = CacheManager.get('news_world_claude');
+                if (cached) return cached;
+
+                try {
+                    const response = await fetch(`${this.getApiBaseUrl()}/api/news?category=world`);
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.details || 'News API error');
+                    }
+
+                    const data = await response.json();
+                    const articles = data.articles || [];
+
+                    CacheManager.set('news_world_claude', articles);
+                    return articles;
+                } catch (e) {
+                    console.error('World news fetch error:', e);
+                    return this.getMockWorldNews();
+                }
+            },
+
+            async fetchLegalTechNews() {
+                const cached = CacheManager.get('news_legal_claude');
+                if (cached) return cached;
+
+                try {
+                    const response = await fetch(`${this.getApiBaseUrl()}/api/news?category=legal-tech`);
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.details || 'News API error');
+                    }
+
+                    const data = await response.json();
+                    const articles = data.articles || [];
+
+                    CacheManager.set('news_legal_claude', articles);
+                    return articles;
+                } catch (e) {
+                    console.error('Legal-tech news fetch error:', e);
+                    return this.getMockLegalTechNews();
+                }
+            },
+
+            getMockWorldNews() {
+                return [
+                    {
+                        title: 'Global Leaders Meet for Climate Summit',
+                        summary: 'World leaders gathered today to discuss new climate initiatives. The summit aims to establish binding emissions targets for the next decade.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock News'
+                    },
+                    {
+                        title: 'Tech Industry Reports Record Growth',
+                        summary: 'Major technology companies reported strong quarterly earnings. AI and cloud services continue to drive revenue growth.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock News'
+                    },
+                    {
+                        title: 'New Economic Policies Announced',
+                        summary: 'The Federal Reserve announced new measures to stabilize markets. Interest rates are expected to remain steady.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock News'
+                    },
+                    {
+                        title: 'Healthcare Innovation Breakthrough',
+                        summary: 'Researchers unveiled a promising new treatment option. Clinical trials show significant improvement in patient outcomes.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock News'
+                    },
+                    {
+                        title: 'International Trade Agreement Reached',
+                        summary: 'Major economies finalized a new trade agreement. The deal is expected to boost cross-border commerce.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock News'
+                    }
+                ];
+            },
+
+            getMockLegalTechNews() {
+                return [
+                    {
+                        title: 'AI-Powered Legal Research Tools Transform Law Practice',
+                        summary: 'New artificial intelligence platforms are revolutionizing how attorneys conduct legal research. Firms report significant time savings on case preparation.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock Legal Tech'
+                    },
+                    {
+                        title: 'Courts Adopt Digital Evidence Management Systems',
+                        summary: 'Federal courts are implementing new digital evidence platforms. The systems streamline document management and improve case efficiency.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock Legal Tech'
+                    },
+                    {
+                        title: 'LegalTech Startup Raises $50M in Funding',
+                        summary: 'A prominent legal technology startup secured major venture capital investment. The company plans to expand its contract analysis platform.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock Legal Tech'
+                    },
+                    {
+                        title: 'Remote Deposition Technology Becomes Standard',
+                        summary: 'Virtual deposition platforms have become the industry norm. Attorneys and court reporters embrace the flexibility of remote proceedings.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock Legal Tech'
+                    },
+                    {
+                        title: 'Bar Association Updates Technology Ethics Guidelines',
+                        summary: 'The American Bar Association released new guidance on AI ethics in legal practice. The rules address confidentiality and competency requirements.',
+                        imageUrl: null,
+                        url: '#',
+                        source: 'Mock Legal Tech'
+                    }
+                ];
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Calendar Service (Google Calendar API)
+           ═══════════════════════════════════════════════════════════════ */
+        const CalendarService = {
+            tokenClient: null,
+            accessToken: null,
+
+            init() {
+                // Check if we have a stored token
+                const storedToken = CacheManager.get('calendar_token');
+                if (storedToken) {
+                    this.accessToken = storedToken;
+                    this.onSignedIn();
+                }
+
+                // Initialize Google Identity Services when library loads
+                if (typeof google !== 'undefined' && google.accounts) {
+                    this.initTokenClient();
+                } else {
+                    // Wait for the library to load
+                    window.addEventListener('load', () => {
+                        setTimeout(() => this.initTokenClient(), 500);
+                    });
+                }
+            },
+
+            initTokenClient() {
+                if (CONFIG.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') {
+                    console.log('Google Calendar: Client ID not configured');
+                    return;
+                }
+
+                if (typeof google === 'undefined' || !google.accounts) {
+                    console.log('Google Identity Services not loaded yet');
+                    return;
+                }
+
+                this.tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    scope: 'https://www.googleapis.com/auth/calendar.readonly',
+                    callback: (response) => {
+                        if (response.access_token) {
+                            this.accessToken = response.access_token;
+                            // Cache token (expires in ~1 hour, we cache for 50 mins)
+                            CacheManager.set('calendar_token', response.access_token);
+                            this.onSignedIn();
+                        }
+                    },
+                });
+            },
+
+            signIn() {
+                if (!this.tokenClient) {
+                    if (CONFIG.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') {
+                        alert('Please configure your Google Client ID in the CONFIG section.\n\nSee the setup instructions in the console or README.');
+                        console.log(`
+╔════════════════════════════════════════════════════════════════╗
+║              Google Calendar Setup Instructions                 ║
+╠════════════════════════════════════════════════════════════════╣
+║ 1. Go to: https://console.cloud.google.com                     ║
+║ 2. Create a new project (or select existing)                   ║
+║ 3. Enable the "Google Calendar API"                            ║
+║ 4. Go to "Credentials" → "Create Credentials" → "OAuth 2.0"    ║
+║ 5. Application type: "Web application"                         ║
+║ 6. Add Authorized JavaScript origin: http://localhost:8000     ║
+║ 7. Copy the Client ID and paste it in CONFIG.GOOGLE_CLIENT_ID  ║
+╚════════════════════════════════════════════════════════════════╝
+                        `);
+                        return;
+                    }
+                    this.initTokenClient();
+                }
+
+                if (this.tokenClient) {
+                    this.tokenClient.requestAccessToken();
+                }
+            },
+
+            signOut() {
+                if (this.accessToken) {
+                    google.accounts.oauth2.revoke(this.accessToken);
+                    this.accessToken = null;
+                    localStorage.removeItem('briefing_calendar_token');
+                    UI.renderCalendarLoggedOut();
+                }
+            },
+
+            onSignedIn() {
+                UI.renderCalendarLoading();
+                this.fetchTodayEvents();
+            },
+
+            async fetchTodayEvents() {
+                if (!this.accessToken) return [];
+
+                try {
+                    // Get today's date range
+                    const now = new Date();
+                    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+                    const timeMin = startOfDay.toISOString();
+                    const timeMax = endOfDay.toISOString();
+
+                    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `Bearer ${this.accessToken}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            // Token expired, clear it
+                            this.accessToken = null;
+                            localStorage.removeItem('briefing_calendar_token');
+                            UI.renderCalendarLoggedOut();
+                            return [];
+                        }
+                        throw new Error('Calendar API error');
+                    }
+
+                    const data = await response.json();
+                    const events = this.formatEvents(data.items || []);
+                    UI.renderCalendarEvents(events);
+                    return events;
+                } catch (e) {
+                    console.error('Calendar fetch error:', e);
+                    UI.renderCalendarError();
+                    return [];
+                }
+            },
+
+            formatEvents(events) {
+                return events.map(event => {
+                    const start = event.start.dateTime || event.start.date;
+                    const end = event.end.dateTime || event.end.date;
+                    const isAllDay = !event.start.dateTime;
+
+                    let timeStr = 'All day';
+                    let startDate = null;
+                    let endDate = null;
+
+                    if (!isAllDay) {
+                        startDate = new Date(start);
+                        endDate = new Date(end);
+                        const startTime = startDate.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        const endTime = endDate.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        timeStr = `${startTime} - ${endTime}`;
+                    }
+
+                    return {
+                        title: event.summary || 'No title',
+                        time: timeStr,
+                        location: event.location || '',
+                        link: event.htmlLink,
+                        isAllDay,
+                        startDate,
+                        endDate,
+                        startHour: startDate ? startDate.getHours() + startDate.getMinutes() / 60 : null,
+                        endHour: endDate ? endDate.getHours() + endDate.getMinutes() / 60 : null
+                    };
+                });
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Theme Manager
+           ═══════════════════════════════════════════════════════════════ */
+        const ThemeManager = {
+            init() {
+                const savedTheme = CacheManager.getTheme();
+                this.setTheme(savedTheme);
+
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    this.toggle();
+                });
+            },
+
+            setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+                CacheManager.setTheme(theme);
+            },
+
+            toggle() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const newTheme = current === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           UI Renderer
+           ═══════════════════════════════════════════════════════════════ */
+        const UI = {
+            formatDate() {
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
+                const date = new Date().toLocaleDateString('en-US', options);
+                document.getElementById('dateDisplay').textContent = date;
+            },
+
+            renderWeather(data) {
+                const el = document.getElementById('weatherValue');
+                el.classList.remove('skeleton', 'skeleton-stat');
+                el.textContent = `${data.temp}°F ${data.description}`;
+
+                document.querySelector('#weatherStat .stat-icon').textContent = data.icon;
+            },
+
+            renderStocks(data) {
+                const spEl = document.getElementById('spValue');
+                const nasdaqEl = document.getElementById('nasdaqValue');
+                const spChangeEl = document.getElementById('spChange');
+                const nasdaqChangeEl = document.getElementById('nasdaqChange');
+
+                spEl.classList.remove('skeleton', 'skeleton-stat');
+                nasdaqEl.classList.remove('skeleton', 'skeleton-stat');
+
+                // S&P 500 price and change
+                spEl.textContent = data.sp500.price;
+                spEl.className = `stat-value ${data.sp500.isPositive ? 'positive' : 'negative'}`;
+                spChangeEl.textContent = data.sp500.changePercent;
+                spChangeEl.className = `stat-change ${data.sp500.isPositive ? 'positive' : 'negative'}`;
+
+                // NASDAQ price and change
+                nasdaqEl.textContent = data.nasdaq.price;
+                nasdaqEl.className = `stat-value ${data.nasdaq.isPositive ? 'positive' : 'negative'}`;
+                nasdaqChangeEl.textContent = data.nasdaq.changePercent;
+                nasdaqChangeEl.className = `stat-change ${data.nasdaq.isPositive ? 'positive' : 'negative'}`;
+            },
+
+            renderNewsSkeletons(containerId, count = 5) {
+                const container = document.getElementById(containerId);
+                let html = '';
+
+                for (let i = 0; i < count; i++) {
+                    html += `
+                        <article class="news-card">
+                            <div class="skeleton skeleton-image"></div>
+                            <div class="news-card-content">
+                                <div class="skeleton skeleton-headline"></div>
+                                <div class="skeleton skeleton-text"></div>
+                                <div class="skeleton skeleton-text"></div>
+                            </div>
+                        </article>
+                    `;
+                }
+
+                container.innerHTML = html;
+            },
+
+            renderNews(containerId, articles) {
+                const container = document.getElementById(containerId);
+
+                if (!articles || articles.length === 0) {
+                    container.innerHTML = this.renderError('No news available', containerId);
+                    return;
+                }
+
+                const html = articles.map(article => `
+                    <article class="news-card">
+                        ${article.imageUrl
+                            ? `<img src="${article.imageUrl}" alt="" class="news-card-image" loading="lazy" onerror="this.style.display='none'">`
+                            : `<div class="news-card-image" style="background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 2rem;">📰</div>`
+                        }
+                        <div class="news-card-content">
+                            <h3 class="news-card-headline">${this.escapeHtml(article.title)}</h3>
+                            <p class="news-card-summary">${this.escapeHtml(article.summary)}</p>
+                            <div class="news-card-footer">
+                                <a href="${article.url}" class="news-card-link" target="_blank" rel="noopener noreferrer">
+                                    Read more
+                                </a>
+                                <p class="news-card-source">${this.escapeHtml(article.source)}</p>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+
+                container.innerHTML = html;
+            },
+
+            renderError(message, containerId) {
+                return `
+                    <div class="error-state">
+                        <div class="error-icon">⚠️</div>
+                        <p class="error-message">${message}</p>
+                        <button class="retry-button" onclick="App.retryFetch('${containerId}')">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            },
+
+            renderCalendarLoading() {
+                const container = document.getElementById('calendarContainer');
+                container.innerHTML = `
+                    <div class="calendar-loading">
+                        <div class="skeleton skeleton-timeline"></div>
+                        <div class="skeleton skeleton-legend"></div>
+                    </div>
+                `;
+            },
+
+            renderCalendarEvents(events) {
+                const container = document.getElementById('calendarContainer');
+                const authContainer = document.getElementById('calendarAuthContainer');
+
+                // Update auth button to show logout
+                authContainer.innerHTML = `
+                    <button class="calendar-logout-btn" onclick="CalendarService.signOut()">
+                        Disconnect
+                    </button>
+                `;
+
+                // Timeline config: 7am to 9pm (14 hours)
+                const TIMELINE_START = 7;  // 7 AM
+                const TIMELINE_END = 21;   // 9 PM
+                const TIMELINE_HOURS = TIMELINE_END - TIMELINE_START;
+
+                // Generate hour labels
+                const hourLabels = [];
+                for (let h = TIMELINE_START; h <= TIMELINE_END; h += 2) {
+                    const label = h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`;
+                    hourLabels.push(`<div class="timeline-hour">${label}</div>`);
+                }
+
+                // Calculate current time indicator position
+                const now = new Date();
+                const currentHour = now.getHours() + now.getMinutes() / 60;
+                let nowIndicator = '';
+                if (currentHour >= TIMELINE_START && currentHour <= TIMELINE_END) {
+                    const nowPercent = ((currentHour - TIMELINE_START) / TIMELINE_HOURS) * 100;
+                    nowIndicator = `<div class="timeline-now" style="left: ${nowPercent}%"></div>`;
+                }
+
+                // Separate all-day and timed events
+                const allDayEvents = events.filter(e => e.isAllDay);
+                const timedEvents = events.filter(e => !e.isAllDay);
+
+                // Render timed events on timeline
+                const eventBlocks = timedEvents.map((event, index) => {
+                    // Clamp to timeline bounds
+                    const startHour = Math.max(event.startHour, TIMELINE_START);
+                    const endHour = Math.min(event.endHour, TIMELINE_END);
+
+                    // Skip if event is outside timeline
+                    if (endHour <= TIMELINE_START || startHour >= TIMELINE_END) return '';
+
+                    const leftPercent = ((startHour - TIMELINE_START) / TIMELINE_HOURS) * 100;
+                    const widthPercent = ((endHour - startHour) / TIMELINE_HOURS) * 100;
+
+                    return `
+                        <a href="${event.link || '#'}" target="_blank" rel="noopener"
+                           class="timeline-event"
+                           style="left: ${leftPercent}%; width: ${widthPercent}%;"
+                           data-tooltip="${this.escapeHtml(event.title)} (${event.time})">
+                        </a>
+                    `;
+                }).join('');
+
+                // Render legend with event list
+                const legendItems = events.map(event => {
+                    const timeDisplay = event.isAllDay ? 'All day' : event.time;
+                    return `
+                        <div class="legend-item">
+                            <div class="legend-dot ${event.isAllDay ? 'all-day' : ''}" style="${event.isAllDay ? 'background-color: var(--text-muted); opacity: 0.6;' : ''}"></div>
+                            ${event.link
+                                ? `<a href="${event.link}" target="_blank" rel="noopener">${this.escapeHtml(event.title)}</a>`
+                                : `<span>${this.escapeHtml(event.title)}</span>`
+                            }
+                            <span class="legend-time">${timeDisplay}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                // Empty state for no events
+                if (events.length === 0) {
+                    container.innerHTML = `
+                        <div class="timeline-container">
+                            <div class="timeline-hours">${hourLabels.join('')}</div>
+                            <div class="timeline-track">
+                                ${nowIndicator}
+                            </div>
+                        </div>
+                        <div class="calendar-empty" style="padding: 1rem;">
+                            <p>✨ No meetings today - enjoy your free day!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="timeline-container">
+                        <div class="timeline-hours">${hourLabels.join('')}</div>
+                        <div class="timeline-track">
+                            ${nowIndicator}
+                            ${eventBlocks}
+                        </div>
+                    </div>
+                    <div class="timeline-legend">${legendItems}</div>
+                `;
+            },
+
+            renderCalendarLoggedOut() {
+                const container = document.getElementById('calendarContainer');
+                const authContainer = document.getElementById('calendarAuthContainer');
+
+                authContainer.innerHTML = `
+                    <button class="calendar-login-btn" id="calendarLoginBtn" onclick="CalendarService.signIn()">
+                        <span>📅</span> Connect Google Calendar
+                    </button>
+                `;
+
+                container.innerHTML = `
+                    <div class="calendar-empty">
+                        <div class="calendar-empty-icon">📅</div>
+                        <p>Connect your Google Calendar to see today's meetings</p>
+                    </div>
+                `;
+            },
+
+            renderCalendarError() {
+                const container = document.getElementById('calendarContainer');
+                container.innerHTML = `
+                    <div class="calendar-empty">
+                        <div class="calendar-empty-icon">⚠️</div>
+                        <p>Failed to load calendar. <a href="#" onclick="CalendarService.fetchTodayEvents(); return false;">Try again</a></p>
+                    </div>
+                `;
+            },
+
+            showConfigNotice() {
+                const hasRealKeys =
+                    CONFIG.WEATHER_API_KEY !== 'YOUR_OPENWEATHERMAP_API_KEY' ||
+                    CONFIG.STOCKS_API_KEY !== 'YOUR_ALPHAVANTAGE_API_KEY';
+
+                if (!hasRealKeys) {
+                    document.getElementById('configNotice').style.display = 'block';
+                }
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Main Application
+           ═══════════════════════════════════════════════════════════════ */
+        const App = {
+            async init() {
+                // Initialize theme
+                ThemeManager.init();
+
+                // Initialize calendar (OAuth)
+                CalendarService.init();
+
+                // Format and display date
+                UI.formatDate();
+
+                // Show config notice if needed
+                UI.showConfigNotice();
+
+                // Show loading skeletons
+                UI.renderNewsSkeletons('worldNewsContainer');
+                UI.renderNewsSkeletons('legalTechContainer');
+
+                // Fetch all data in parallel
+                await Promise.all([
+                    this.fetchWeather(),
+                    this.fetchStocks(),
+                    this.fetchWorldNews(),
+                    this.fetchLegalTechNews()
+                ]);
+            },
+
+            async fetchWeather() {
+                try {
+                    const data = await WeatherService.fetch();
+                    UI.renderWeather(data);
+                } catch (e) {
+                    console.error('Weather error:', e);
+                    UI.renderWeather({ temp: '--', description: 'N/A', icon: '🌡️' });
+                }
+            },
+
+            async fetchStocks() {
+                try {
+                    const data = await StocksService.fetch();
+                    UI.renderStocks(data);
+                } catch (e) {
+                    console.error('Stocks error:', e);
+                    document.getElementById('spValue').textContent = 'N/A';
+                    document.getElementById('nasdaqValue').textContent = 'N/A';
+                }
+            },
+
+            async fetchWorldNews() {
+                try {
+                    const articles = await NewsService.fetchWorldNews();
+                    UI.renderNews('worldNewsContainer', articles);
+                } catch (e) {
+                    console.error('World news error:', e);
+                    document.getElementById('worldNewsContainer').innerHTML =
+                        UI.renderError('Failed to load world news', 'worldNewsContainer');
+                }
+            },
+
+            async fetchLegalTechNews() {
+                try {
+                    const articles = await NewsService.fetchLegalTechNews();
+                    UI.renderNews('legalTechContainer', articles);
+                } catch (e) {
+                    console.error('Legal tech news error:', e);
+                    document.getElementById('legalTechContainer').innerHTML =
+                        UI.renderError('Failed to load legal-tech news', 'legalTechContainer');
+                }
+            },
+
+            async retryFetch(containerId) {
+                if (containerId === 'worldNewsContainer') {
+                    UI.renderNewsSkeletons(containerId);
+                    await this.fetchWorldNews();
+                } else if (containerId === 'legalTechContainer') {
+                    UI.renderNewsSkeletons(containerId);
+                    await this.fetchLegalTechNews();
+                }
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Dust Particles Animation
+           ═══════════════════════════════════════════════════════════════ */
+        const DustParticles = {
+            canvas: null,
+            ctx: null,
+            particles: [],
+            particleCount: 65,
+            animationId: null,
+
+            init() {
+                this.canvas = document.getElementById('dustCanvas');
+                if (!this.canvas) return;
+
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                this.createParticles();
+                this.animate();
+
+                window.addEventListener('resize', () => this.resize());
+            },
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+
+            createParticles() {
+                this.particles = [];
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 2 + 0.5,
+                        speedX: (Math.random() - 0.5) * 0.3,
+                        speedY: (Math.random() - 0.5) * 0.3,
+                        opacity: Math.random() * 0.5 + 0.1,
+                        pulse: Math.random() * Math.PI * 2
+                    });
+                }
+            },
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                const baseColor = isDark ? '255, 255, 255' : '0, 0, 0';
+
+                this.particles.forEach(particle => {
+                    // Update position
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    particle.pulse += 0.02;
+
+                    // Wrap around edges
+                    if (particle.x < 0) particle.x = this.canvas.width;
+                    if (particle.x > this.canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = this.canvas.height;
+                    if (particle.y > this.canvas.height) particle.y = 0;
+
+                    // Pulsing opacity
+                    const pulseOpacity = particle.opacity * (0.5 + 0.5 * Math.sin(particle.pulse));
+
+                    // Draw particle
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${baseColor}, ${pulseOpacity})`;
+                    this.ctx.fill();
+                });
+
+                this.animationId = requestAnimationFrame(() => this.animate());
+            },
+
+            destroy() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+        };
+
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            DustParticles.init();
+        });
+    </script>
+</body>
+</html>

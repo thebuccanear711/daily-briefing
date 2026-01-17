@@ -1,0 +1,16 @@
+{
+  "name": "daily-briefing",
+  "version": "1.0.0",
+  "description": "A personal daily briefing dashboard with weather, stocks, news, and calendar",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site - no build needed'",
+    "start": "python3 -m http.server 8000"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
