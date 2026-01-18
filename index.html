@@ -1754,13 +1754,15 @@
                 UI.renderNewsSkeletons('worldNewsContainer');
                 UI.renderNewsSkeletons('legalTechContainer');
 
-                // Fetch all data in parallel
+                // Fetch weather and stocks in parallel (fast APIs)
                 await Promise.all([
                     this.fetchWeather(),
-                    this.fetchStocks(),
-                    this.fetchWorldNews(),
-                    this.fetchLegalTechNews()
+                    this.fetchStocks()
                 ]);
+
+                // Fetch news sequentially to avoid rate limits
+                await this.fetchWorldNews();
+                await this.fetchLegalTechNews();
             },
 
             async fetchWeather() {
