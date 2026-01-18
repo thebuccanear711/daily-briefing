@@ -2,6 +2,15 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 
+// Simple in-memory cache (persists across warm serverless invocations)
+const cache = {
+  world: { data: null, timestamp: 0 },
+  "legal-tech": { data: null, timestamp: 0 }
+};
+
+// Cache duration: 30 minutes (in milliseconds)
+const CACHE_DURATION = 30 * 60 * 1000;
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -23,64 +32,56 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Check cache first
+    const cached = cache[category];
+    const now = Date.now();
+
+    if (cached.data && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log(`Returning cached ${category} news`);
+      return res.status(200).json({ articles: cached.data, cached: true });
+    }
+
+    // Fetch fresh data
+    console.log(`Fetching fresh ${category} news from Claude`);
     const articles = await fetchNewsWithClaude(category);
-    return res.status(200).json({ articles });
+
+    // Update cache
+    cache[category] = { data: articles, timestamp: now };
+
+    return res.status(200).json({ articles, cached: false });
   } catch (error) {
     console.error("Error fetching news:", error);
+
+    // If we have stale cache, return it on error
+    if (cache[category].data) {
+      console.log(`Returning stale cached ${category} news due to error`);
+      return res.status(200).json({
+        articles: cache[category].data,
+        cached: true,
+        stale: true
+      });
+    }
+
     return res.status(500).json({ error: "Failed to fetch news", details: error.message });
   }
 }
 
 async function fetchNewsWithClaude(category) {
   const prompts = {
-    world: `Search the web for today's top 5 most important world news stories. Focus on major global events, politics, economics, and significant breaking news from reputable sources like Reuters, AP News, BBC, NPR, and major newspapers.
+    world: `Find today's top 5 world news stories from Reuters, AP, BBC, or NPR.
 
-For each story, provide:
-1. A compelling headline
-2. A 2-sentence summary that captures the key facts
-3. The source name
-4. The URL to the original article
+Return ONLY a JSON array:
+[{"title":"Headline","summary":"Two sentences.","source":"Source","url":"https://...","imageUrl":null}]`,
 
-Return ONLY a valid JSON array with exactly 5 objects in this format:
-[
-  {
-    "title": "Headline here",
-    "summary": "Two sentence summary here.",
-    "source": "Source Name",
-    "url": "https://...",
-    "imageUrl": null
-  }
-]
+    "legal-tech": `Find 5 recent legal technology news stories from Law.com, Law360, Artificial Lawyer, or TechCrunch.
 
-Do not include any text before or after the JSON array.`,
-
-    "legal-tech": `Search the web for the latest 5 news stories about legal technology, law firm innovation, legal AI, courtroom technology, legal software, contract automation, legal tech startups, or legal industry digital transformation.
-
-Prioritize sources like: Law.com, Law360, Artificial Lawyer, Legal Dive, TechCrunch (legal coverage), VentureBeat, ABA Journal, LawSites Blog, Legal Tech News, and StenoImperium.
-
-For each story, provide:
-1. A compelling headline
-2. A 2-sentence summary that captures the key facts
-3. The source name
-4. The URL to the original article
-
-Return ONLY a valid JSON array with exactly 5 objects in this format:
-[
-  {
-    "title": "Headline here",
-    "summary": "Two sentence summary here.",
-    "source": "Source Name",
-    "url": "https://...",
-    "imageUrl": null
-  }
-]
-
-Do not include any text before or after the JSON array.`
+Return ONLY a JSON array:
+[{"title":"Headline","summary":"Two sentences.","source":"Source","url":"https://...","imageUrl":null}]`
   };
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
+    max_tokens: 1500,
     messages: [
       {
         role: "user",
@@ -91,7 +92,7 @@ Do not include any text before or after the JSON array.`
       {
         type: "web_search_20250305",
         name: "web_search",
-        max_uses: 10
+        max_uses: 5
       }
     ]
   });
@@ -106,11 +107,10 @@ Do not include any text before or after the JSON array.`
 
   // Parse the JSON response
   try {
-    // Try to extract JSON from the response (in case there's extra text)
     const jsonMatch = textContent.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       const articles = JSON.parse(jsonMatch[0]);
-      return articles.slice(0, 5); // Ensure max 5 articles
+      return articles.slice(0, 5);
     }
     throw new Error("No valid JSON array found in response");
   } catch (parseError) {
