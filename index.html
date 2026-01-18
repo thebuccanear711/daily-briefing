@@ -845,6 +845,31 @@
             opacity: 0.6;
         }
 
+        /* Event colors by attendee count */
+        .timeline-event.solo {
+            background-color: #6366f1; /* Purple - solo/focus time */
+        }
+
+        .timeline-event.one-on-one {
+            background-color: #10b981; /* Green - 1:1 meeting */
+        }
+
+        .timeline-event.group {
+            background-color: #f59e0b; /* Amber - group meeting */
+        }
+
+        .legend-dot.solo {
+            background-color: #6366f1;
+        }
+
+        .legend-dot.one-on-one {
+            background-color: #10b981;
+        }
+
+        .legend-dot.group {
+            background-color: #f59e0b;
+        }
+
         /* Event Legend */
         .timeline-legend {
             display: flex;
@@ -1655,6 +1680,19 @@
                         timeStr = `${startTime} - ${endTime}`;
                     }
 
+                    // Count other attendees (excluding yourself)
+                    const attendees = event.attendees || [];
+                    const otherAttendees = attendees.filter(a => !a.self);
+                    const otherCount = otherAttendees.length;
+
+                    // Determine meeting type based on attendee count
+                    let meetingType = 'solo'; // No other guests
+                    if (otherCount === 1) {
+                        meetingType = 'one-on-one'; // 1:1 meeting
+                    } else if (otherCount > 1) {
+                        meetingType = 'group'; // Group meeting
+                    }
+
                     return {
                         title: event.summary || 'No title',
                         time: timeStr,
@@ -1664,7 +1702,9 @@
                         startDate,
                         endDate,
                         startHour: startDate ? startDate.getHours() + startDate.getMinutes() / 60 : null,
-                        endHour: endDate ? endDate.getHours() + endDate.getMinutes() / 60 : null
+                        endHour: endDate ? endDate.getHours() + endDate.getMinutes() / 60 : null,
+                        meetingType,
+                        attendeeCount: otherCount
                     };
                 });
             }
@@ -1887,9 +1927,12 @@
                     const leftPercent = ((startHour - TIMELINE_START) / TIMELINE_HOURS) * 100;
                     const widthPercent = ((endHour - startHour) / TIMELINE_HOURS) * 100;
 
+                    // Get meeting type class for color coding
+                    const meetingTypeClass = event.meetingType || 'solo';
+
                     return `
                         <a href="${event.link || '#'}" target="_blank" rel="noopener"
-                           class="timeline-event"
+                           class="timeline-event ${meetingTypeClass}"
                            style="left: ${leftPercent}%; width: ${widthPercent}%;"
                            data-tooltip="${this.escapeHtml(event.title)} (${event.time})">
                         </a>
@@ -1899,14 +1942,19 @@
                 // Render legend with event list
                 const legendItems = events.map(event => {
                     const timeDisplay = event.isAllDay ? 'All day' : event.time;
+                    const meetingTypeClass = event.isAllDay ? 'all-day' : (event.meetingType || 'solo');
+                    const meetingTypeLabel = event.isAllDay ? '' :
+                        event.meetingType === 'one-on-one' ? ' · 1:1' :
+                        event.meetingType === 'group' ? ` · ${event.attendeeCount} guests` : '';
+
                     return `
                         <div class="legend-item">
-                            <div class="legend-dot ${event.isAllDay ? 'all-day' : ''}" style="${event.isAllDay ? 'background-color: var(--text-muted); opacity: 0.6;' : ''}"></div>
+                            <div class="legend-dot ${meetingTypeClass}"></div>
                             ${event.link
                                 ? `<a href="${event.link}" target="_blank" rel="noopener">${this.escapeHtml(event.title)}</a>`
                                 : `<span>${this.escapeHtml(event.title)}</span>`
                             }
-                            <span class="legend-time">${timeDisplay}</span>
+                            <span class="legend-time">${timeDisplay}${meetingTypeLabel}</span>
                         </div>
                     `;
                 }).join('');
