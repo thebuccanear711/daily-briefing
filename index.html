@@ -683,6 +683,44 @@
             color: #ef4444;
         }
 
+        .metric-sparkline {
+            margin-top: 0.75rem;
+            height: 30px;
+            width: 100%;
+        }
+
+        .metric-sparkline svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sparkline-path {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .sparkline-path.positive {
+            stroke: #10b981;
+        }
+
+        .sparkline-path.negative {
+            stroke: #ef4444;
+        }
+
+        .sparkline-area {
+            opacity: 0.1;
+        }
+
+        .sparkline-area.positive {
+            fill: #10b981;
+        }
+
+        .sparkline-area.negative {
+            fill: #ef4444;
+        }
+
         .metrics-placeholder {
             text-align: center;
             padding: 2rem;
@@ -1047,21 +1085,25 @@
                         <div class="metric-label">Revenue MTD</div>
                         <div class="metric-value" id="metric1Value">--</div>
                         <div class="metric-change" id="metric1Change"></div>
+                        <div class="metric-sparkline" id="metric1Sparkline"></div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-label">Active Users</div>
                         <div class="metric-value" id="metric2Value">--</div>
                         <div class="metric-change" id="metric2Change"></div>
+                        <div class="metric-sparkline" id="metric2Sparkline"></div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-label">Conversion Rate</div>
                         <div class="metric-value" id="metric3Value">--</div>
                         <div class="metric-change" id="metric3Change"></div>
+                        <div class="metric-sparkline" id="metric3Sparkline"></div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-label">Avg Order Value</div>
                         <div class="metric-value" id="metric4Value">--</div>
                         <div class="metric-change" id="metric4Change"></div>
+                        <div class="metric-sparkline" id="metric4Sparkline"></div>
                     </div>
                 </div>
             </div>
@@ -1355,30 +1397,35 @@
 
             getMockData() {
                 // Mock data - replace with real metrics once Looker is configured
+                // sparkline: array of 7 values representing last 7 days
                 return [
                     {
                         label: CONFIG.LOOKER.METRICS[0]?.label || 'Revenue MTD',
                         value: '$142.5K',
                         change: '+12.3%',
-                        isPositive: true
+                        isPositive: true,
+                        sparkline: [98, 105, 110, 108, 125, 135, 142]
                     },
                     {
                         label: CONFIG.LOOKER.METRICS[1]?.label || 'Active Users',
                         value: '8,234',
                         change: '+5.7%',
-                        isPositive: true
+                        isPositive: true,
+                        sparkline: [7200, 7400, 7350, 7800, 7900, 8100, 8234]
                     },
                     {
                         label: CONFIG.LOOKER.METRICS[2]?.label || 'Conversion Rate',
                         value: '3.2%',
                         change: '-0.4%',
-                        isPositive: false
+                        isPositive: false,
+                        sparkline: [3.8, 3.6, 3.5, 3.4, 3.3, 3.25, 3.2]
                     },
                     {
                         label: CONFIG.LOOKER.METRICS[3]?.label || 'Avg Order Value',
                         value: '$87.50',
                         change: '+2.1%',
-                        isPositive: true
+                        isPositive: true,
+                        sparkline: [82, 83, 84, 85, 84, 86, 87.5]
                     }
                 ];
             }
@@ -1785,6 +1832,7 @@
                 metrics.forEach((metric, index) => {
                     const valueEl = document.getElementById(`metric${index + 1}Value`);
                     const changeEl = document.getElementById(`metric${index + 1}Change`);
+                    const sparklineEl = document.getElementById(`metric${index + 1}Sparkline`);
                     const labelEl = valueEl?.parentElement?.querySelector('.metric-label');
 
                     if (valueEl) {
@@ -1798,7 +1846,41 @@
                     if (labelEl) {
                         labelEl.textContent = metric.label;
                     }
+                    if (sparklineEl && metric.sparkline) {
+                        sparklineEl.innerHTML = this.generateSparkline(metric.sparkline, metric.isPositive);
+                    }
                 });
+            },
+
+            generateSparkline(data, isPositive) {
+                if (!data || data.length < 2) return '';
+
+                const width = 100;
+                const height = 30;
+                const padding = 2;
+
+                // Normalize data to fit in the SVG
+                const min = Math.min(...data);
+                const max = Math.max(...data);
+                const range = max - min || 1;
+
+                // Generate points
+                const points = data.map((value, i) => {
+                    const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+                    const y = height - padding - ((value - min) / range) * (height - padding * 2);
+                    return `${x},${y}`;
+                });
+
+                const pathD = `M ${points.join(' L ')}`;
+                const areaD = `M ${padding},${height - padding} L ${points.join(' L ')} L ${width - padding},${height - padding} Z`;
+                const colorClass = isPositive ? 'positive' : 'negative';
+
+                return `
+                    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+                        <path class="sparkline-area ${colorClass}" d="${areaD}" />
+                        <path class="sparkline-path ${colorClass}" d="${pathD}" />
+                    </svg>
+                `;
             },
 
             renderNewsSkeletons(containerId, count = 5) {
