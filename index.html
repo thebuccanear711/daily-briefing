@@ -590,6 +590,113 @@
         }
 
         /* ═══════════════════════════════════════════════════════════════
+           Looker Metrics Section Styles
+           ═══════════════════════════════════════════════════════════════ */
+        .metrics-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metrics-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .metric-card {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1.25rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--text-muted);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .metric-value.positive {
+            color: #10b981;
+        }
+
+        .metric-value.negative {
+            color: #ef4444;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .metric-change.positive {
+            color: #10b981;
+        }
+
+        .metric-change.negative {
+            color: #ef4444;
+        }
+
+        .metrics-placeholder {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            border: 1px dashed var(--border-color);
+            border-radius: 4px;
+        }
+
+        .metrics-placeholder-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
            Calendar Section Styles
            ═══════════════════════════════════════════════════════════════ */
         .calendar-section {
@@ -904,6 +1011,37 @@
             <p>To fetch live data, configure your API keys in the <code>CONFIG</code> object at the bottom of this file. See README.md for instructions.</p>
         </div>
 
+        <!-- Looker Metrics Section -->
+        <section class="metrics-section" aria-labelledby="metricsTitle">
+            <div class="metrics-header">
+                <h2 class="metrics-title" id="metricsTitle">Key Metrics</h2>
+            </div>
+            <div id="metricsContainer">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Revenue MTD</div>
+                        <div class="metric-value" id="metric1Value">--</div>
+                        <div class="metric-change" id="metric1Change"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Active Users</div>
+                        <div class="metric-value" id="metric2Value">--</div>
+                        <div class="metric-change" id="metric2Change"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Conversion Rate</div>
+                        <div class="metric-value" id="metric3Value">--</div>
+                        <div class="metric-change" id="metric3Change"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Avg Order Value</div>
+                        <div class="metric-value" id="metric4Value">--</div>
+                        <div class="metric-change" id="metric4Change"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Calendar Section -->
         <section class="calendar-section" aria-labelledby="calendarTitle">
             <div class="calendar-header">
@@ -952,6 +1090,21 @@
 
             // Google Calendar OAuth - Replace with your Client ID from Google Cloud Console
             GOOGLE_CLIENT_ID: '336497708635-pck7r6maarvop94dup6je1bifin3lon0.apps.googleusercontent.com',
+
+            // Looker Configuration - Replace with your Looker credentials
+            LOOKER: {
+                BASE_URL: 'YOUR_LOOKER_URL', // e.g., 'https://yourcompany.looker.com'
+                CLIENT_ID: 'YOUR_LOOKER_CLIENT_ID',
+                CLIENT_SECRET: 'YOUR_LOOKER_CLIENT_SECRET',
+                DASHBOARD_ID: null, // Your dashboard ID (number)
+                // Define your metrics - update labels and tile IDs once you have them
+                METRICS: [
+                    { label: 'Revenue MTD', tileId: null },
+                    { label: 'Active Users', tileId: null },
+                    { label: 'Conversion Rate', tileId: null },
+                    { label: 'Avg Order Value', tileId: null }
+                ]
+            },
 
             // Cache duration in milliseconds (1 hour)
             CACHE_DURATION: 3600000,
@@ -1131,6 +1284,78 @@
                     sp500: { price: '4,892.50', change: '+12.34', changePercent: '+0.25%', isPositive: true },
                     nasdaq: { price: '15,234.80', change: '-28.50', changePercent: '-0.19%', isPositive: false }
                 };
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════════════
+           Looker Service (Dashboard Metrics)
+           ═══════════════════════════════════════════════════════════════ */
+        const LookerService = {
+            accessToken: null,
+            tokenExpiry: null,
+
+            isConfigured() {
+                return CONFIG.LOOKER.BASE_URL !== 'YOUR_LOOKER_URL' &&
+                       CONFIG.LOOKER.CLIENT_ID !== 'YOUR_LOOKER_CLIENT_ID';
+            },
+
+            async fetch() {
+                const cached = CacheManager.get('looker_metrics');
+                if (cached) return cached;
+
+                // If not configured, return mock data
+                if (!this.isConfigured()) {
+                    return this.getMockData();
+                }
+
+                try {
+                    // In production, this would authenticate with Looker and fetch real data
+                    // For now, return mock data until credentials are configured
+                    // The actual implementation would use the Looker API via a serverless function
+                    const metrics = await this.fetchMetrics();
+                    CacheManager.set('looker_metrics', metrics);
+                    return metrics;
+                } catch (e) {
+                    console.error('Looker fetch error:', e);
+                    return this.getMockData();
+                }
+            },
+
+            async fetchMetrics() {
+                // TODO: Implement actual Looker API call via serverless function
+                // This will require a backend endpoint to securely handle Looker auth
+                // For now, return mock data
+                return this.getMockData();
+            },
+
+            getMockData() {
+                // Mock data - replace with real metrics once Looker is configured
+                return [
+                    {
+                        label: CONFIG.LOOKER.METRICS[0]?.label || 'Revenue MTD',
+                        value: '$142.5K',
+                        change: '+12.3%',
+                        isPositive: true
+                    },
+                    {
+                        label: CONFIG.LOOKER.METRICS[1]?.label || 'Active Users',
+                        value: '8,234',
+                        change: '+5.7%',
+                        isPositive: true
+                    },
+                    {
+                        label: CONFIG.LOOKER.METRICS[2]?.label || 'Conversion Rate',
+                        value: '3.2%',
+                        change: '-0.4%',
+                        isPositive: false
+                    },
+                    {
+                        label: CONFIG.LOOKER.METRICS[3]?.label || 'Avg Order Value',
+                        value: '$87.50',
+                        change: '+2.1%',
+                        isPositive: true
+                    }
+                ];
             }
         };
 
@@ -1516,6 +1741,26 @@
                 nasdaqChangeEl.className = `stat-change ${data.nasdaq.isPositive ? 'positive' : 'negative'}`;
             },
 
+            renderMetrics(metrics) {
+                metrics.forEach((metric, index) => {
+                    const valueEl = document.getElementById(`metric${index + 1}Value`);
+                    const changeEl = document.getElementById(`metric${index + 1}Change`);
+                    const labelEl = valueEl?.parentElement?.querySelector('.metric-label');
+
+                    if (valueEl) {
+                        valueEl.textContent = metric.value;
+                        valueEl.className = `metric-value ${metric.isPositive ? 'positive' : ''}`;
+                    }
+                    if (changeEl) {
+                        changeEl.textContent = metric.change;
+                        changeEl.className = `metric-change ${metric.isPositive ? 'positive' : 'negative'}`;
+                    }
+                    if (labelEl) {
+                        labelEl.textContent = metric.label;
+                    }
+                });
+            },
+
             renderNewsSkeletons(containerId, count = 5) {
                 const container = document.getElementById(containerId);
                 let html = '';
@@ -1754,15 +1999,25 @@
                 UI.renderNewsSkeletons('worldNewsContainer');
                 UI.renderNewsSkeletons('legalTechContainer');
 
-                // Fetch weather and stocks in parallel (fast APIs)
+                // Fetch weather, stocks, and metrics in parallel (fast APIs)
                 await Promise.all([
                     this.fetchWeather(),
-                    this.fetchStocks()
+                    this.fetchStocks(),
+                    this.fetchMetrics()
                 ]);
 
                 // Fetch news sequentially to avoid rate limits
                 await this.fetchWorldNews();
                 await this.fetchLegalTechNews();
+            },
+
+            async fetchMetrics() {
+                try {
+                    const metrics = await LookerService.fetch();
+                    UI.renderMetrics(metrics);
+                } catch (e) {
+                    console.error('Metrics error:', e);
+                }
             },
 
             async fetchWeather() {
