@@ -6,6 +6,7 @@ const RSS_SOURCES = {
     { name: 'Reuters', url: 'https://feeds.reuters.com/reuters/topNews', priority: 1 },
     { name: 'AP News', url: 'https://rsshub.app/apnews/topics/apf-topnews', priority: 1 },
     { name: 'BBC', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', priority: 1 },
+    { name: 'NYTimes', url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', priority: 1 },
     { name: 'NPR', url: 'https://feeds.npr.org/1001/rss.xml', priority: 2 },
   ],
   'legal-tech': [
