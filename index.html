@@ -274,6 +274,75 @@
         }
 
         /* ═══════════════════════════════════════════════════════════════
+           OKR Section
+           ═══════════════════════════════════════════════════════════════ */
+        .okr-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0.75rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .okr-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .okr-card {
+            flex: 1;
+            max-width: 320px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .okr-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+        }
+
+        .okr-text {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .okr-tagline {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .okr-section {
+                padding: 0.5rem 1rem;
+            }
+
+            .okr-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .okr-card {
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .okr-text {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
            Main Content Layout
            ═══════════════════════════════════════════════════════════════ */
         .main-content {
@@ -1031,7 +1100,7 @@
                 <!-- Weather -->
                 <div class="stat-item" id="weatherStat">
                     <span class="stat-icon" aria-hidden="true">☀️</span>
-                    <span class="stat-label">Los Angeles</span>
+                    <span class="stat-label" id="weatherCity">Loading...</span>
                     <span class="stat-value skeleton skeleton-stat" id="weatherValue"></span>
                 </div>
 
@@ -1065,6 +1134,22 @@
             </div>
         </div>
     </header>
+
+    <!-- Company OKRs -->
+    <section class="okr-section" aria-label="Company OKRs">
+        <div class="okr-container">
+            <div class="okr-card">
+                <span class="okr-text">Feed the Golden Goose</span>
+            </div>
+            <div class="okr-card">
+                <span class="okr-text">Have Multiple Thriving Growth Engines</span>
+            </div>
+            <div class="okr-card">
+                <span class="okr-text">Build a Technology-Forward Culture</span>
+            </div>
+        </div>
+        <div class="okr-tagline">#ktmttmt</div>
+    </section>
 
     <!-- Main Content -->
     <main class="main-content" role="main">
@@ -1221,7 +1306,7 @@
         };
 
         /* ═══════════════════════════════════════════════════════════════
-           Weather Service
+           Weather Service (with geolocation support)
            ═══════════════════════════════════════════════════════════════ */
         const WeatherService = {
             async fetch() {
@@ -1233,7 +1318,10 @@
                 }
 
                 try {
-                    const { lat, lon } = CONFIG.LOCATION;
+                    // Try to get user's location, fall back to default
+                    const location = await this.getLocation();
+                    const { lat, lon, city } = location;
+
                     const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${CONFIG.WEATHER_API_KEY}`;
 
                     const response = await fetch(url);
@@ -1243,7 +1331,8 @@
                     const result = {
                         temp: Math.round(data.main.temp),
                         description: data.weather[0].main,
-                        icon: this.getWeatherIcon(data.weather[0].icon)
+                        icon: this.getWeatherIcon(data.weather[0].icon),
+                        city: data.name || city
                     };
 
                     CacheManager.set('weather', result);
@@ -1252,6 +1341,43 @@
                     console.error('Weather fetch error:', e);
                     return this.getMockData();
                 }
+            },
+
+            async getLocation() {
+                // Check if we have a cached location
+                const cachedLoc = localStorage.getItem('briefing_user_location');
+                if (cachedLoc) {
+                    try {
+                        return JSON.parse(cachedLoc);
+                    } catch (e) {}
+                }
+
+                // Try browser geolocation
+                if ('geolocation' in navigator) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                timeout: 5000,
+                                maximumAge: 3600000 // 1 hour
+                            });
+                        });
+
+                        const userLocation = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude,
+                            city: 'Your Location'
+                        };
+
+                        // Cache for future visits
+                        localStorage.setItem('briefing_user_location', JSON.stringify(userLocation));
+                        return userLocation;
+                    } catch (e) {
+                        console.log('Geolocation denied or failed, using default location');
+                    }
+                }
+
+                // Fall back to default
+                return CONFIG.LOCATION;
             },
 
             getWeatherIcon(iconCode) {
@@ -1273,7 +1399,8 @@
                 return {
                     temp: 68,
                     description: 'Clear',
-                    icon: '☀️'
+                    icon: '☀️',
+                    city: CONFIG.LOCATION.city
                 };
             }
         };
@@ -1759,6 +1886,12 @@
                 el.textContent = `${data.temp}°F ${data.description}`;
 
                 document.querySelector('#weatherStat .stat-icon').textContent = data.icon;
+
+                // Update city name
+                const cityEl = document.getElementById('weatherCity');
+                if (cityEl && data.city) {
+                    cityEl.textContent = data.city;
+                }
             },
 
             renderStocks(data) {
@@ -2111,7 +2244,7 @@
                     UI.renderWeather(data);
                 } catch (e) {
                     console.error('Weather error:', e);
-                    UI.renderWeather({ temp: '--', description: 'N/A', icon: '🌡️' });
+                    UI.renderWeather({ temp: '--', description: 'N/A', icon: '🌡️', city: 'Weather' });
                 }
             },
 
