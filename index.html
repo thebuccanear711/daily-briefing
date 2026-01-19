@@ -411,7 +411,10 @@
             height: 160px;
             min-height: 160px;
             object-fit: cover;
+            object-position: center top;
             background-color: var(--bg-secondary);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
         .news-card-content {
@@ -1993,20 +1996,49 @@
                 container.innerHTML = html;
             },
 
+            // Stock images for fallbacks (high-quality Unsplash images)
+            stockImages: {
+                legalTech: [
+                    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400&h=300&fit=crop', // Legal scales
+                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop', // Modern office
+                    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop', // Data analytics
+                    'https://images.unsplash.com/photo-1677442135136-760c813028c0?w=400&h=300&fit=crop', // AI concept
+                    'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop', // Contract signing
+                ],
+                world: [
+                    'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=400&h=300&fit=crop', // Newspaper
+                    'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop', // News desk
+                    'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400&h=300&fit=crop', // Globe
+                    'https://images.unsplash.com/photo-1523995462485-3d171b5c8fa9?w=400&h=300&fit=crop', // World map
+                    'https://images.unsplash.com/photo-1478940020726-e9e191651f1a?w=400&h=300&fit=crop', // City aerial
+                ]
+            },
+
+            getStockImage(type, index) {
+                const images = this.stockImages[type] || this.stockImages.world;
+                return images[index % images.length];
+            },
+
             renderNews(containerId, articles) {
                 const container = document.getElementById(containerId);
+                const isLegalTech = containerId === 'legalTechContainer';
 
                 if (!articles || articles.length === 0) {
                     container.innerHTML = this.renderError('No news available', containerId);
                     return;
                 }
 
-                const html = articles.map(article => `
+                const html = articles.map((article, index) => {
+                    const fallbackImage = this.getStockImage(isLegalTech ? 'legalTech' : 'world', index);
+                    return `
                     <article class="news-card">
-                        ${article.imageUrl
-                            ? `<img src="${article.imageUrl}" alt="" class="news-card-image" loading="lazy" onerror="this.style.display='none'">`
-                            : `<div class="news-card-image" style="background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 2rem;">📰</div>`
-                        }
+                        <img
+                            src="${article.imageUrl || fallbackImage}"
+                            alt=""
+                            class="news-card-image"
+                            loading="lazy"
+                            onerror="this.src='${fallbackImage}'"
+                        >
                         <div class="news-card-content">
                             <h3 class="news-card-headline">${this.escapeHtml(article.title)}</h3>
                             <p class="news-card-summary">${this.escapeHtml(article.summary)}</p>
@@ -2018,7 +2050,7 @@
                             </div>
                         </div>
                     </article>
-                `).join('');
+                `}).join('');
 
                 container.innerHTML = html;
             },
