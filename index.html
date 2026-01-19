@@ -1158,20 +1158,8 @@
             // Google Calendar OAuth - Replace with your Client ID from Google Cloud Console
             GOOGLE_CLIENT_ID: '336497708635-pck7r6maarvop94dup6je1bifin3lon0.apps.googleusercontent.com',
 
-            // Looker Configuration - Replace with your Looker credentials
-            LOOKER: {
-                BASE_URL: 'YOUR_LOOKER_URL', // e.g., 'https://yourcompany.looker.com'
-                CLIENT_ID: 'YOUR_LOOKER_CLIENT_ID',
-                CLIENT_SECRET: 'YOUR_LOOKER_CLIENT_SECRET',
-                DASHBOARD_ID: null, // Your dashboard ID (number)
-                // Define your metrics - update labels and tile IDs once you have them
-                METRICS: [
-                    { label: 'Revenue MTD', tileId: null },
-                    { label: 'Active Users', tileId: null },
-                    { label: 'Conversion Rate', tileId: null },
-                    { label: 'Avg Order Value', tileId: null }
-                ]
-            },
+            // Metrics are fetched from Google Sheets via /api/metrics
+            // Sheet URL: https://docs.google.com/spreadsheets/d/1yFOjVB_tMm3StcdEV6arJotWymrRxqaUJaK3g8P_x18
 
             // Cache duration in milliseconds (1 hour)
             CACHE_DURATION: 3600000,
@@ -1355,78 +1343,45 @@
         };
 
         /* ═══════════════════════════════════════════════════════════════
-           Looker Service (Dashboard Metrics)
+           Metrics Service (Google Sheets via Zapier/Snowflake)
            ═══════════════════════════════════════════════════════════════ */
-        const LookerService = {
-            accessToken: null,
-            tokenExpiry: null,
-
-            isConfigured() {
-                return CONFIG.LOOKER.BASE_URL !== 'YOUR_LOOKER_URL' &&
-                       CONFIG.LOOKER.CLIENT_ID !== 'YOUR_LOOKER_CLIENT_ID';
+        const MetricsService = {
+            getApiBaseUrl() {
+                return window.location.origin;
             },
 
             async fetch() {
-                const cached = CacheManager.get('looker_metrics');
+                const cached = CacheManager.get('sheet_metrics');
                 if (cached) return cached;
 
-                // If not configured, return mock data
-                if (!this.isConfigured()) {
-                    return this.getMockData();
-                }
-
                 try {
-                    // In production, this would authenticate with Looker and fetch real data
-                    // For now, return mock data until credentials are configured
-                    // The actual implementation would use the Looker API via a serverless function
-                    const metrics = await this.fetchMetrics();
-                    CacheManager.set('looker_metrics', metrics);
-                    return metrics;
+                    const response = await fetch(`${this.getApiBaseUrl()}/api/metrics`);
+                    if (!response.ok) {
+                        throw new Error('Metrics API error');
+                    }
+
+                    const data = await response.json();
+                    const metrics = data.metrics || [];
+
+                    if (metrics.length > 0) {
+                        CacheManager.set('sheet_metrics', metrics);
+                        return metrics;
+                    }
+
+                    return this.getMockData();
                 } catch (e) {
-                    console.error('Looker fetch error:', e);
+                    console.error('Metrics fetch error:', e);
                     return this.getMockData();
                 }
-            },
-
-            async fetchMetrics() {
-                // TODO: Implement actual Looker API call via serverless function
-                // This will require a backend endpoint to securely handle Looker auth
-                // For now, return mock data
-                return this.getMockData();
             },
 
             getMockData() {
-                // Mock data - replace with real metrics once Looker is configured
-                // sparkline: array of 7 values representing last 7 days
+                // Fallback mock data if Google Sheet is empty or unavailable
                 return [
-                    {
-                        label: CONFIG.LOOKER.METRICS[0]?.label || 'Revenue MTD',
-                        value: '$142.5K',
-                        change: '+12.3%',
-                        isPositive: true,
-                        sparkline: [98, 105, 110, 108, 125, 135, 142]
-                    },
-                    {
-                        label: CONFIG.LOOKER.METRICS[1]?.label || 'Active Users',
-                        value: '8,234',
-                        change: '+5.7%',
-                        isPositive: true,
-                        sparkline: [7200, 7400, 7350, 7800, 7900, 8100, 8234]
-                    },
-                    {
-                        label: CONFIG.LOOKER.METRICS[2]?.label || 'Conversion Rate',
-                        value: '3.2%',
-                        change: '-0.4%',
-                        isPositive: false,
-                        sparkline: [3.8, 3.6, 3.5, 3.4, 3.3, 3.25, 3.2]
-                    },
-                    {
-                        label: CONFIG.LOOKER.METRICS[3]?.label || 'Avg Order Value',
-                        value: '$87.50',
-                        change: '+2.1%',
-                        isPositive: true,
-                        sparkline: [82, 83, 84, 85, 84, 86, 87.5]
-                    }
+                    { label: 'Revenue MTD', value: '$142.5K', change: '+12.3%', isPositive: true, sparkline: [98, 105, 110, 108, 125, 135, 142] },
+                    { label: 'Active Users', value: '8,234', change: '+5.7%', isPositive: true, sparkline: [7200, 7400, 7350, 7800, 7900, 8100, 8234] },
+                    { label: 'Conversion Rate', value: '3.2%', change: '-0.4%', isPositive: false, sparkline: [3.8, 3.6, 3.5, 3.4, 3.3, 3.25, 3.2] },
+                    { label: 'Avg Order Value', value: '$87.50', change: '+2.1%', isPositive: true, sparkline: [82, 83, 84, 85, 84, 86, 87.5] }
                 ];
             }
         };
@@ -2143,7 +2098,7 @@
 
             async fetchMetrics() {
                 try {
-                    const metrics = await LookerService.fetch();
+                    const metrics = await MetricsService.fetch();
                     UI.renderMetrics(metrics);
                 } catch (e) {
                     console.error('Metrics error:', e);
