@@ -1350,15 +1350,20 @@
                     } catch (e) {}
                 }
 
-                // Try browser geolocation
+                // Try browser geolocation with a strict timeout
                 if ('geolocation' in navigator) {
                     try {
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                timeout: 5000,
-                                maximumAge: 3600000 // 1 hour
-                            });
-                        });
+                        const position = await Promise.race([
+                            new Promise((resolve, reject) => {
+                                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                    timeout: 5000,
+                                    maximumAge: 3600000
+                                });
+                            }),
+                            new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error('Geolocation timeout')), 6000)
+                            )
+                        ]);
 
                         const userLocation = {
                             lat: position.coords.latitude,
@@ -1366,11 +1371,10 @@
                             city: 'Your Location'
                         };
 
-                        // Cache for future visits
                         localStorage.setItem('briefing_user_location', JSON.stringify(userLocation));
                         return userLocation;
                     } catch (e) {
-                        console.log('Geolocation denied or failed, using default location');
+                        console.log('Geolocation denied or timed out, using default location');
                     }
                 }
 
