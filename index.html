@@ -286,40 +286,40 @@
 
         .okr-container {
             display: flex;
-            gap: 1rem;
+            gap: 2rem;
             justify-content: center;
         }
 
         .okr-card {
-            flex: 1;
-            max-width: 320px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.75rem 1.25rem;
             text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .okr-card:hover {
-            border-color: var(--accent-color);
-            transform: translateY(-1px);
         }
 
         .okr-text {
             font-family: var(--font-display);
-            font-size: 0.95rem;
+            font-size: 1.3rem;
             font-weight: 500;
             color: var(--text-primary);
         }
 
+        .okr-divider {
+            display: flex;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .okr-divider-line {
+            flex: 1;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
         .okr-tagline {
-            text-align: center;
-            margin-top: 0.5rem;
+            padding: 0 1.5rem;
             font-size: 0.8rem;
             font-style: italic;
             color: var(--text-secondary);
             opacity: 0.7;
+            white-space: nowrap;
         }
 
         @media (max-width: 768px) {
@@ -330,15 +330,15 @@
             .okr-container {
                 flex-direction: column;
                 align-items: center;
-            }
-
-            .okr-card {
-                max-width: 100%;
-                width: 100%;
+                gap: 0.5rem;
             }
 
             .okr-text {
-                font-size: 0.85rem;
+                font-size: 1.1rem;
+            }
+
+            .okr-tagline {
+                padding: 0 1rem;
             }
         }
 
@@ -1148,7 +1148,11 @@
                 <span class="okr-text">Build a Technology-Forward Culture</span>
             </div>
         </div>
-        <div class="okr-tagline">#ktmttmt</div>
+        <div class="okr-divider">
+            <div class="okr-divider-line"></div>
+            <span class="okr-tagline">#ktmttmt</span>
+            <div class="okr-divider-line"></div>
+        </div>
     </section>
 
     <!-- Main Content -->
