@@ -268,7 +268,40 @@ function processLegalTechNews(articles) {
   // Deduplicate by similar titles
   const unique = deduplicateByTitle(scored);
 
-  return unique.slice(0, 5).map(formatArticle);
+  // Daily rotation: use day of year as seed to shuffle top results
+  // Take more articles than needed, shuffle them, then pick 5
+  const pool = unique.slice(0, 15); // Top 15 candidates
+  const shuffled = seededShuffle(pool, getDayOfYear());
+
+  return shuffled.slice(0, 5).map(formatArticle);
+}
+
+// Get day of year (1-366) for consistent daily rotation
+function getDayOfYear() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  return Math.floor(diff / oneDay);
+}
+
+// Seeded shuffle using day of year for consistency
+function seededShuffle(array, seed) {
+  const result = [...array];
+  let m = result.length;
+
+  // Simple seeded random number generator
+  const random = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  while (m) {
+    const i = Math.floor(random() * m--);
+    [result[m], result[i]] = [result[i], result[m]];
+  }
+
+  return result;
 }
 
 function groupSimilarStories(articles) {
