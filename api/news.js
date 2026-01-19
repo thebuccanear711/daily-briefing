@@ -240,6 +240,8 @@ function processWorldNews(articles) {
 }
 
 function processLegalTechNews(articles) {
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
   // Score by keyword relevance
   const scored = articles.map(article => {
     const text = (article.title + ' ' + article.summary).toLowerCase();
@@ -253,27 +255,33 @@ function processLegalTechNews(articles) {
 
     return {
       ...article,
-      relevanceScore: keywordScore + (1 / article.sourcePriority)
+      relevanceScore: keywordScore + (1 / article.sourcePriority),
+      isFresh: article.pubDate >= fortyEightHoursAgo
     };
   });
 
-  // Sort by relevance, then recency
-  scored.sort((a, b) => {
+  // Deduplicate first
+  const unique = deduplicateByTitle(scored);
+
+  // Separate fresh (last 48 hours) from older articles
+  const fresh = unique.filter(a => a.isFresh && a.relevanceScore > 0);
+  const older = unique.filter(a => !a.isFresh || a.relevanceScore === 0);
+
+  // Sort fresh by relevance then recency (these always come first)
+  fresh.sort((a, b) => {
     if (b.relevanceScore !== a.relevanceScore) {
       return b.relevanceScore - a.relevanceScore;
     }
     return b.pubDate - a.pubDate;
   });
 
-  // Deduplicate by similar titles
-  const unique = deduplicateByTitle(scored);
+  // Shuffle older articles with daily rotation for variety
+  const shuffledOlder = seededShuffle(older.slice(0, 15), getDayOfYear());
 
-  // Daily rotation: use day of year as seed to shuffle top results
-  // Take more articles than needed, shuffle them, then pick 5
-  const pool = unique.slice(0, 15); // Top 15 candidates
-  const shuffled = seededShuffle(pool, getDayOfYear());
+  // Combine: fresh first, then fill remaining slots with rotated older content
+  const combined = [...fresh, ...shuffledOlder];
 
-  return shuffled.slice(0, 5).map(formatArticle);
+  return combined.slice(0, 5).map(formatArticle);
 }
 
 // Get day of year (1-366) for consistent daily rotation
