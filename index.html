@@ -274,6 +274,65 @@
         }
 
         /* ═══════════════════════════════════════════════════════════════
+           Auth Prompt (Sign In Section)
+           ═══════════════════════════════════════════════════════════════ */
+        .auth-prompt {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .auth-prompt-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .auth-prompt-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .auth-prompt-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-prompt-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .auth-prompt-btn:hover {
+            background: var(--border-color);
+            border-color: var(--text-muted);
+        }
+
+        .protected-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
            OKR Section
            ═══════════════════════════════════════════════════════════════ */
         .okr-section {
@@ -1132,87 +1191,104 @@
         </div>
     </header>
 
-    <!-- Company OKRs -->
-    <section class="okr-section" aria-label="Company OKRs">
-        <div class="okr-container">
-            <div class="okr-card">
-                <span class="okr-text">Feed the Golden Goose</span>
-            </div>
-            <div class="okr-card">
-                <span class="okr-text">Have Multiple Thriving Growth Engines</span>
-            </div>
-            <div class="okr-card">
-                <span class="okr-text">Build a Technology-Forward Culture</span>
-            </div>
-        </div>
-        <div class="okr-divider">
-            <div class="okr-divider-line"></div>
-            <span class="okr-tagline">#ktmttmt</span>
-            <div class="okr-divider-line"></div>
+    <!-- Sign In Prompt (shown when not authenticated) -->
+    <section class="auth-prompt" id="authPrompt">
+        <div class="auth-prompt-content">
+            <div class="auth-prompt-icon">🔒</div>
+            <p class="auth-prompt-text">Sign in with Google to view company data</p>
+            <button class="auth-prompt-btn" onclick="CalendarService.signIn()">
+                <svg width="18" height="18" viewBox="0 0 24 24" style="margin-right: 8px;">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+            </button>
         </div>
     </section>
 
-    <!-- Main Content -->
-    <main class="main-content" role="main">
-        <!-- Configuration Notice (shown when API keys not configured) -->
-        <div class="config-notice" id="configNotice" style="display: none;">
-            <div class="config-notice-title">⚠️ API Keys Required</div>
-            <p>To fetch live data, configure your API keys in the <code>CONFIG</code> object at the bottom of this file. See README.md for instructions.</p>
-        </div>
-
-        <!-- Looker Metrics Section -->
-        <section class="metrics-section" aria-labelledby="metricsTitle">
-            <div class="metrics-header">
-                <h2 class="metrics-title" id="metricsTitle">Key Metrics</h2>
-            </div>
-            <div id="metricsContainer">
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">Revenue MTD</div>
-                        <div class="metric-value" id="metric1Value">--</div>
-                        <div class="metric-change" id="metric1Change"></div>
-                        <div class="metric-sparkline" id="metric1Sparkline"></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Active Users</div>
-                        <div class="metric-value" id="metric2Value">--</div>
-                        <div class="metric-change" id="metric2Change"></div>
-                        <div class="metric-sparkline" id="metric2Sparkline"></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Conversion Rate</div>
-                        <div class="metric-value" id="metric3Value">--</div>
-                        <div class="metric-change" id="metric3Change"></div>
-                        <div class="metric-sparkline" id="metric3Sparkline"></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Avg Order Value</div>
-                        <div class="metric-value" id="metric4Value">--</div>
-                        <div class="metric-change" id="metric4Change"></div>
-                        <div class="metric-sparkline" id="metric4Sparkline"></div>
-                    </div>
+    <!-- Protected Content (hidden until authenticated) -->
+    <div id="protectedContent" class="protected-content" style="display: none;">
+        <!-- Company OKRs -->
+        <section class="okr-section" aria-label="Company OKRs">
+            <div class="okr-container">
+                <div class="okr-card">
+                    <span class="okr-text">Feed the Golden Goose</span>
                 </div>
+                <div class="okr-card">
+                    <span class="okr-text">Have Multiple Thriving Growth Engines</span>
+                </div>
+                <div class="okr-card">
+                    <span class="okr-text">Build a Technology-Forward Culture</span>
+                </div>
+            </div>
+            <div class="okr-divider">
+                <div class="okr-divider-line"></div>
+                <span class="okr-tagline">#ktmttmt</span>
+                <div class="okr-divider-line"></div>
             </div>
         </section>
 
-        <!-- Calendar Section -->
-        <section class="calendar-section" aria-labelledby="calendarTitle">
-            <div class="calendar-header">
-                <h2 class="calendar-title" id="calendarTitle">Today's Schedule</h2>
-                <div id="calendarAuthContainer">
-                    <button class="calendar-login-btn" id="calendarLoginBtn" onclick="CalendarService.signIn()">
-                        <span>📅</span> Connect Google Calendar
-                    </button>
-                </div>
+        <!-- Main Content -->
+        <main class="main-content" role="main">
+            <!-- Configuration Notice (shown when API keys not configured) -->
+            <div class="config-notice" id="configNotice" style="display: none;">
+                <div class="config-notice-title">⚠️ API Keys Required</div>
+                <p>To fetch live data, configure your API keys in the <code>CONFIG</code> object at the bottom of this file. See README.md for instructions.</p>
             </div>
-            <div id="calendarContainer">
-                <div class="calendar-empty">
-                    <div class="calendar-empty-icon">📅</div>
-                    <p>Connect your Google Calendar to see today's meetings</p>
-                </div>
-            </div>
-        </section>
 
+            <!-- Looker Metrics Section -->
+            <section class="metrics-section" aria-labelledby="metricsTitle">
+                <div class="metrics-header">
+                    <h2 class="metrics-title" id="metricsTitle">Key Metrics</h2>
+                </div>
+                <div id="metricsContainer">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Revenue MTD</div>
+                            <div class="metric-value" id="metric1Value">--</div>
+                            <div class="metric-change" id="metric1Change"></div>
+                            <div class="metric-sparkline" id="metric1Sparkline"></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Active Users</div>
+                            <div class="metric-value" id="metric2Value">--</div>
+                            <div class="metric-change" id="metric2Change"></div>
+                            <div class="metric-sparkline" id="metric2Sparkline"></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Conversion Rate</div>
+                            <div class="metric-value" id="metric3Value">--</div>
+                            <div class="metric-change" id="metric3Change"></div>
+                            <div class="metric-sparkline" id="metric3Sparkline"></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Avg Order Value</div>
+                            <div class="metric-value" id="metric4Value">--</div>
+                            <div class="metric-change" id="metric4Change"></div>
+                            <div class="metric-sparkline" id="metric4Sparkline"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Section -->
+            <section class="calendar-section" aria-labelledby="calendarTitle">
+                <div class="calendar-header">
+                    <h2 class="calendar-title" id="calendarTitle">Today's Schedule</h2>
+                    <div id="calendarAuthContainer">
+                        <!-- Sign out button will be added here when authenticated -->
+                    </div>
+                </div>
+                <div id="calendarContainer">
+                    <div class="calendar-loading">Loading calendar...</div>
+                </div>
+            </section>
+    </div>
+
+    <!-- News Section (always visible) -->
+    <main class="main-content news-main" role="main">
         <div class="news-grid">
             <!-- World News Column -->
             <section class="news-column" aria-labelledby="worldNewsHeader">
@@ -1737,13 +1813,23 @@
                     google.accounts.oauth2.revoke(this.accessToken);
                     this.accessToken = null;
                     localStorage.removeItem('briefing_calendar_token');
-                    UI.renderCalendarLoggedOut();
+
+                    // Hide protected content, show auth prompt
+                    document.getElementById('protectedContent').style.display = 'none';
+                    document.getElementById('authPrompt').style.display = 'block';
                 }
             },
 
             onSignedIn() {
+                // Show protected content, hide auth prompt
+                document.getElementById('authPrompt').style.display = 'none';
+                document.getElementById('protectedContent').style.display = 'block';
+
                 UI.renderCalendarLoading();
                 this.fetchTodayEvents();
+
+                // Fetch metrics now that user is authenticated
+                App.fetchMetrics();
             },
 
             async fetchTodayEvents() {
@@ -2251,12 +2337,13 @@
                 UI.renderNewsSkeletons('worldNewsContainer');
                 UI.renderNewsSkeletons('legalTechContainer');
 
-                // Fetch weather, stocks, and metrics in parallel (fast APIs)
+                // Fetch weather and stocks in parallel (public data)
                 await Promise.all([
                     this.fetchWeather(),
-                    this.fetchStocks(),
-                    this.fetchMetrics()
+                    this.fetchStocks()
                 ]);
+
+                // Metrics are fetched after Google auth (in CalendarService.onSignedIn)
 
                 // Fetch news sequentially to avoid rate limits
                 await this.fetchWorldNews();
