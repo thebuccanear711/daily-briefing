@@ -52,8 +52,8 @@ daily-briefing/
 
 **Authentication**: Google OAuth gates sensitive company data
 - **Public** (no auth): Weather, stocks, world news, legal-tech news
-- **Protected** (requires Google sign-in): OKRs, metrics, calendar
-- Sign-in prompt shown by default; protected content revealed after auth
+- **Protected** (requires Steno email sign-in): OKRs, metrics, calendar
+- "Sign in with your Steno email" prompt shown by default; protected content revealed after auth
 
 ## Environment Variables (Vercel)
 
