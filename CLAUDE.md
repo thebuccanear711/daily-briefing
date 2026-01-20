@@ -50,6 +50,11 @@ daily-briefing/
 
 **Theme**: Dark/light mode toggle, dark by default
 
+**Authentication**: Google OAuth gates sensitive company data
+- **Public** (no auth): Weather, stocks, world news, legal-tech news
+- **Protected** (requires Google sign-in): OKRs, metrics, calendar
+- Sign-in prompt shown by default; protected content revealed after auth
+
 ## Environment Variables (Vercel)
 
 ```
