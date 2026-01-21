@@ -9,7 +9,7 @@
     <!-- Google Fonts: Source Sans Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* ═══════════════════════════════════════════════════════════════
            CSS Custom Properties - Avaros-Inspired Theme
@@ -167,6 +167,22 @@
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
+        }
+
+        .fun-greeting {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 2s ease-in-out infinite;
+            margin-bottom: 0.25rem;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
         }
 
         .date-display {
@@ -1150,6 +1166,7 @@
     <!-- Header -->
     <header class="header" role="banner">
         <div class="header-content">
+            <div class="fun-greeting">Hi Charlie! ✨</div>
             <h1 class="date-display" id="dateDisplay">Loading...</h1>
 
             <div class="header-stats" role="region" aria-label="Weather and market data">
